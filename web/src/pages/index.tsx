@@ -1,10 +1,12 @@
+import { withUrqlClient } from "next-urql";
 import React from "react";
 import { NavBar } from "../components/NavBar";
+import { createUrqlClient } from "../utils/createUrqlClient";
 
-const index = () => (
+const Index = () => (
   <React.Fragment>
     <NavBar />
   </React.Fragment>
 )
 
-export default index
+export default withUrqlClient(createUrqlClient)(Index)
