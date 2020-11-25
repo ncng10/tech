@@ -14,13 +14,7 @@ function MyApp({ Component, pageProps }) {
   return (
     <Provider value={client}>
       <ThemeProvider theme={theme}>
-        <ColorModeProvider
-          options={{
-            useSystemColorMode: false,
-          }}
-        >
-          <Component {...pageProps} />
-        </ColorModeProvider>
+        <Component {...pageProps} />
       </ThemeProvider>
     </Provider>
   )
