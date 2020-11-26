@@ -18,9 +18,9 @@ const Login: React.FC<loginProps> = ({ }) => {
     return (
         <Wrapper variant="small">
             <Formik
-                initialValues={{ username: "", password: "" }}
+                initialValues={{ userNameOrEmail: "", password: "" }}
                 onSubmit={async (values, { setErrors }) => {
-                    const response = await login({ options: values });
+                    const response = await login(values);
                     if (response.data?.login.errors) {
                         //fails
                         setErrors(toErrorMap(response.data.login.errors));
@@ -33,9 +33,9 @@ const Login: React.FC<loginProps> = ({ }) => {
                 {({ isSubmitting }) => (
                     <Form>
                         <InputField
-                            name="username"
-                            placeholder="username"
-                            label="Username"
+                            name="userNameOrEmail"
+                            placeholder="Username or Email"
+                            label="Username or Email"
                         />
                         <Box mt={4}>
                             <InputField
