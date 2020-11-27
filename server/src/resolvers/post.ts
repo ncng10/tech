@@ -5,8 +5,6 @@ import { Post } from "./entities/Post";
 
 //crud functions
 
-//sleep function
-
 @InputType()
 class PostInput {
     @Field()
@@ -44,7 +42,7 @@ export class PostResolver {
         @Arg("id") id: number,
         @Arg("title", () => String, { nullable: true }) title: string,
     ): Promise<Post | null> {
-        const post = await Post.findOne(id); //or {where:{id}}
+        const post = await Post.findOne(id); //or {where:{id}} used if id isnt the primary key
         if (!post) {
             return null
         }
