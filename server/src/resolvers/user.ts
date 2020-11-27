@@ -17,7 +17,7 @@ class FieldError {
     message: string;
 }
 
-//user returned if it works propery, or an error to be return if it faisl
+//user returned if it works properly, or an error to be return if it fails
 @ObjectType()
 class UserResponse {
     @Field(() => [FieldError], { nullable: true })
