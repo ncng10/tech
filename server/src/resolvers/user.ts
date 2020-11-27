@@ -2,7 +2,6 @@ import { MyContext } from "src/types";
 import { Arg, Ctx, Field, Mutation, ObjectType, Query, Resolver } from "type-graphql";
 import { User } from "./entities/User";
 import argon2 from 'argon2';
-import { EntityManager } from '@mikro-orm/postgresql'
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants"
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister"
@@ -117,7 +116,7 @@ export class UserResolver {
     @Query(() => User, { nullable: true })
     me(@Ctx() { req }: MyContext) {
         if (!req.session.userId) {
-            return; null //you are not logged in
+            return null //you are not logged in
         }
         User.findOne(req.session.userId);
     };
@@ -148,7 +147,7 @@ export class UserResolver {
                 )
                 .returning("*")
                 .execute();
-            user = result.raw;
+            user = result.raw[0]
         } catch (err) {
             if (err.code === '23505' || err.detail.includes("already exists")) {
                 //duplicate username errors
