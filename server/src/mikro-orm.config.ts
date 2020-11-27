@@ -3,7 +3,8 @@ import { MikroORM } from "@mikro-orm/core";
 import path from "path";
 import { Post } from "./resolvers/entities/Post";
 import { User } from "./resolvers/entities/User";
-require("dotenv").config({ path: 'src/utils/.env' })
+require("dotenv").config({ path: 'src/utils/.env' });
+
 export default {
     migrations: {
         path: path.join(__dirname, "./migrations"),

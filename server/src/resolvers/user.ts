@@ -3,9 +3,11 @@ import { Arg, Ctx, Field, Mutation, ObjectType, Query, Resolver } from "type-gra
 import { User } from "./entities/User";
 import argon2 from 'argon2';
 import { EntityManager } from '@mikro-orm/postgresql'
-import { COOKIE_NAME } from "../constants"
+import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants"
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister"
+import { sendEmail } from "../utils/sendEmail";
+import { v4 } from 'uuid';
 //error in a specific field
 @ObjectType()
 class FieldError {
@@ -29,15 +31,34 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
 
+    //forgot password email
     @Mutation(() => Boolean)
     async forgotPassword(
         @Arg('email') email: string,
-        @Ctx() { em }: MyContext
+        @Ctx() { em, redis }: MyContext
     ) {
-        // const user = await em.findOne(User, { email })
-        return true;
-    }
+        const user = await em.findOne(User, { email })
+        if (!user) {
+            //email not in database, returns true as to not
+            //tell the person it doesnt exist for security
+            return true;
+        }
+        const token = v4();
 
+        await redis.set(
+            FORGET_PASSWORD_PREFIX + token,
+            user.id,
+            'ex',
+            1000 * 60 * 60 * 24 * 3); //3 days
+        await sendEmail(
+            email,
+            `<a href="http://localhost:3000/change-password/${token}">Reset password</a>`
+        )
+
+        return true;
+    };
+
+    //get user info of the currently logged in user
     @Query(() => User, { nullable: true })
     async me(
         @Ctx() { req, em }: MyContext
@@ -47,7 +68,7 @@ export class UserResolver {
         }
         const user = await em.findOne(User, { id: req.session.userId })
         return user
-    }
+    };
 
     //register
     @Mutation(() => UserResponse)
@@ -107,7 +128,7 @@ export class UserResolver {
         if (!user) {
             return {
                 errors: [{
-                    field: "username",
+                    field: "userNameOrEmail",
                     message: "Username does not exist",
                 }],
             };
