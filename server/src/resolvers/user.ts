@@ -8,6 +8,7 @@ import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister"
 import { sendEmail } from "../utils/sendEmail";
 import { v4 } from 'uuid';
+import { getConnection } from "typeorm";
 //error in a specific field
 @ObjectType()
 class FieldError {
@@ -27,18 +28,14 @@ class UserResponse {
     user?: User
 }
 
-//register
 @Resolver()
 export class UserResolver {
-
-
     //change password
-
     @Mutation(() => UserResponse)
     async changePassword(
         @Arg('token') token: string,
         @Arg('newPassword') newPassword: string,
-        @Ctx() { redis, em, req }: MyContext
+        @Ctx() { redis, req }: MyContext
     ): Promise<UserResponse> {
         if (newPassword.length <= 2) {
             return {
@@ -64,8 +61,8 @@ export class UserResolver {
             };
         }
 
-
-        const user = await em.findOne(User, { id: parseInt(userId) });
+        const userIdNum = parseInt(userId)
+        const user = await User.findOne(userIdNum);
 
         if (!user) {
             return {
@@ -78,8 +75,9 @@ export class UserResolver {
             };
         }
 
-        user.password = await argon2.hash(newPassword);
-        await em.persistAndFlush(user);
+        await User.update({ id: userIdNum }, {
+            password: await argon2.hash(newPassword),
+        })
 
         //login user after password is changed
         req.session.userId = user.id;
@@ -92,9 +90,9 @@ export class UserResolver {
     @Mutation(() => Boolean)
     async forgotPassword(
         @Arg('email') email: string,
-        @Ctx() { em, redis }: MyContext
+        @Ctx() { redis }: MyContext
     ) {
-        const user = await em.findOne(User, { email })
+        const user = await User.findOne({ where: { email } }) //use this syntax to search for something that is not a primary key
         if (!user) {
             //email not in database, returns true as to not
             //tell the person it doesnt exist for security
@@ -117,21 +115,18 @@ export class UserResolver {
 
     //get user info of the currently logged in user
     @Query(() => User, { nullable: true })
-    async me(
-        @Ctx() { req, em }: MyContext
-    ) {
+    me(@Ctx() { req }: MyContext) {
         if (!req.session.userId) {
-            return null //you are not logged in
+            return; null //you are not logged in
         }
-        const user = await em.findOne(User, { id: req.session.userId })
-        return user
+        User.findOne(req.session.userId);
     };
 
     //register
     @Mutation(() => UserResponse)
     async register(
         @Arg('options') options: UsernamePasswordInput,
-        @Ctx() { em, req }: MyContext
+        @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
         const errors = validateRegister(options);
         if (errors) {
@@ -140,16 +135,20 @@ export class UserResolver {
         const hashedPassword = await argon2.hash(options.password)
         let user;
         try {
-            const result = await (em as EntityManager)
-                .createQueryBuilder(User)
-                .getKnexQuery().insert({
-                    username: options.username,
-                    email: options.email,
-                    password: hashedPassword,
-                    created_at: new Date(),
-                    updated_at: new Date(),
-                }).returning("*");
-            user = result[0];
+            const result = await getConnection()
+                .createQueryBuilder()
+                .insert()
+                .into(User)
+                .values(
+                    {
+                        username: options.username,
+                        email: options.email,
+                        password: hashedPassword,
+                    }
+                )
+                .returning("*")
+                .execute();
+            user = result.raw;
         } catch (err) {
             if (err.code === '23505' || err.detail.includes("already exists")) {
                 //duplicate username errors
@@ -174,13 +173,12 @@ export class UserResolver {
     async login(
         @Arg('userNameOrEmail') userNameOrEmail: string,
         @Arg('password') password: string,
-        @Ctx() { em, req }: MyContext
+        @Ctx() { req }: MyContext
     ): Promise<UserResponse> {
-        const user = await em.findOne(
-            User,
+        const user = await User.findOne(
             userNameOrEmail.includes("@")
-                ? { email: userNameOrEmail }
-                : { username: userNameOrEmail }
+                ? { where: { email: userNameOrEmail } }
+                : { where: { username: userNameOrEmail } }
         );
         if (!user) {
             return {
