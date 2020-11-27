@@ -12,13 +12,21 @@ import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
-import { sendEmail } from "./utils/sendEmail";
+import { createConnection } from "typeorm";
+import { Post } from "./resolvers/entities/Post";
+import { User } from "./resolvers/entities/User";
 require("dotenv").config({ path: 'src/utils/.env' });
 
 const main = async () => {
-    sendEmail('bob@bob.com', 'hello there');
-    const orm = await MikroORM.init(microConfig);
-    await orm.getMigrator().up();
+    const connection = await createConnection({
+        type: 'postgres',
+        database: 'techtest2',
+        username: 'postgres',
+        password: process.env.DB_PASSWORD,
+        logging: true,
+        synchronize: true,
+        entities: [Post, User],
+    });
 
     const app = express();
 
@@ -55,7 +63,7 @@ const main = async () => {
             resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false,
         }),
-        context: ({ req, res }) => ({ em: orm.em, req, res, redis })
+        context: ({ req, res }) => ({ req, res, redis })
     });
 
     apolloServer.applyMiddleware({ app, cors: { origin: false } });
