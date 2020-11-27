@@ -83,8 +83,9 @@ export class UserResolver {
 
         //login user after password is changed
         req.session.userId = user.id;
-
+        await redis.del(key);
         return { user };
+
     }
 
     //forgot password email
