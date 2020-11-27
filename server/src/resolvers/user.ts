@@ -118,7 +118,7 @@ export class UserResolver {
         if (!req.session.userId) {
             return null //you are not logged in
         }
-        User.findOne(req.session.userId);
+        return User.findOne(req.session.userId);
     };
 
     //register
