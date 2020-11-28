@@ -1,4 +1,3 @@
-import { Connection, EntityManager, IDatabaseDriver } from "@mikro-orm/core";
 import { Request, Response } from 'express';
 import { SessionData } from "express-session";
 import { Session } from "inspector";
