@@ -27,6 +27,16 @@ const Login: React.FC<loginProps> = ({ }) => {
                         setErrors(toErrorMap(response.data.login.errors));
                     } else if (response.data?.login.user) {
                         //worked
+
+                        //if user is logged out and tries to create
+                        //a post, instead of going back to home page
+                        //after logging in, it will take them to the
+                        //page of creating a post
+                        //only if they clicked the link to do so
+                        if (typeof router.query.next === "string") {
+                            router.push(router.query.next);
+                        }
+                    } else {
                         router.push("/")
                     }
                 }}
