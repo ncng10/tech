@@ -1,6 +1,6 @@
 import { MyContext } from "src/types";
 import { isAuth } from '../utils/middleware/isAuth'
-import { Arg, Ctx, Field, FieldResolver, InputType, Int, Mutation, Query, Resolver, Root, UseMiddleware } from "type-graphql";
+import { Arg, Ctx, Field, FieldResolver, InputType, Int, Mutation, ObjectType, Query, Resolver, Root, UseMiddleware } from "type-graphql";
 import { Post } from "./entities/Post";
 import { getConnection } from "typeorm";
 
@@ -14,6 +14,16 @@ class PostInput {
     text: string;
 }
 
+
+@ObjectType()
+class PaginatedPosts {
+    @Field(() => [Post])
+    posts: Post[];
+    @Field()
+    hasMore: boolean;
+}
+
+
 @Resolver(Post)
 export class PostResolver {
 
@@ -24,12 +34,15 @@ export class PostResolver {
         return root.text.slice(0, 50);
     }
 
-    @Query(() => [Post])
+
+
+    @Query(() => PaginatedPosts)
     async posts(
         @Arg('limit', () => Int) limit: number,
         @Arg('cursor', () => String, { nullable: true }) cursor: string | null //gets posts up until a certain point
-    ): Promise<Post[]> {
-        const realLimit = Math.min(50, limit); //max capped at 50
+    ): Promise<PaginatedPosts> {
+        const realLimit = Math.min(50, limit) //max capped at 50.
+        const realLimitPlusOne = realLimit + 1;  // tries to fetch an extra post to see if we have reached the max amount of posts
         const qb = getConnection()
             .getRepository(Post)
             .createQueryBuilder("p")
@@ -44,7 +57,13 @@ export class PostResolver {
                 cursor: new Date(parseInt(cursor)),
             });
         }
-        return qb.getMany();
+
+        const posts = await qb.getMany()
+
+        return {
+            posts: posts.slice(0, realLimitPlusOne),
+            hasMore: posts.length === realLimitPlusOne, //if we get 21 items in the fetch, there are more items, if we get less than 21 in the fetch there are no more items
+        };
     }
 
     @Query(() => Post, { nullable: true })
