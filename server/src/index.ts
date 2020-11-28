@@ -14,6 +14,7 @@ import { createConnection } from "typeorm";
 import { Post } from "./resolvers/entities/Post";
 import { User } from "./resolvers/entities/User";
 require("dotenv").config({ path: 'src/utils/.env' });
+import path from "path";
 
 const main = async () => {
     const connection = await createConnection({
@@ -22,10 +23,12 @@ const main = async () => {
         username: 'postgres',
         password: process.env.DB_PASSWORD,
         logging: true,
+        migrations: [path.join(__dirname, "./migrations/*")],
         synchronize: true,
         entities: [Post, User],
     });
 
+    await connection.runMigrations();
     const app = express();
 
     const RedisStore = connectRedis(session)
