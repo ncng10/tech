@@ -38,6 +38,7 @@ const Index = () => {
             </div>
           )
         )}
+      {console.log(data.posts.hasMore)}
       {
         data && data.posts.hasMore
           ? (<Flex>

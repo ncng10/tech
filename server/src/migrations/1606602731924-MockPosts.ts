@@ -310,7 +310,7 @@ Curabitur at ipsum ac tellus semper interdum. Mauris ullamcorper purus sit amet 
         `)
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
+    public async down(): Promise<void> {
     }
 
 }
