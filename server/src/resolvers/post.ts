@@ -69,9 +69,9 @@ export class PostResolver {
                 await tm.query(
                     `
                 update post
-                set points = points = $1
+                set points = points + $1
                 where id =$2
-                `)
+                `, [realValue, postId])
                 //transaction manager
             })
         }
