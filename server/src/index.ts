@@ -15,6 +15,7 @@ import { Post } from "./resolvers/entities/Post";
 import { User } from "./resolvers/entities/User";
 require("dotenv").config({ path: 'src/utils/.env' });
 import path from "path";
+import { Updoot } from "./resolvers/entities/Updoot";
 
 const main = async () => {
     const connection = await createConnection({
@@ -25,7 +26,7 @@ const main = async () => {
         logging: true,
         migrations: [path.join(__dirname, "./migrations/*")],
         synchronize: true,
-        entities: [Post, User],
+        entities: [Post, User, Updoot],
     });
 
     await connection.runMigrations();

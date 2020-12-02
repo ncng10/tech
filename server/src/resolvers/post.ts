@@ -3,6 +3,8 @@ import { isAuth } from '../utils/middleware/isAuth'
 import { Arg, Ctx, Field, FieldResolver, InputType, Int, Mutation, ObjectType, Query, Resolver, Root, UseMiddleware } from "type-graphql";
 import { Post } from "./entities/Post";
 import { getConnection } from "typeorm";
+import { User } from "./entities/User";
+import { Updoot } from "./entities/Updoot";
 
 //crud functions
 
@@ -26,6 +28,36 @@ class PaginatedPosts {
 
 @Resolver(Post)
 export class PostResolver {
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
+    vote(
+        @Arg('postId', () => Int) postId: number,
+        @Arg('value', () => Int) value: number,
+        @Ctx() { req }: MyContext
+    ) {
+        const isUpdoot = value !== -1;
+        const realValue = isUpdoot ? 1 : -1
+        const { userId } = req.session;
+        // Updoot.insert({
+        //     userId,
+        //     postId,
+        //     value: realValue,
+        // });
+        getConnection().query(
+            `
+        START TRANSACTION;
+
+        insert into updoot ("userId", "postId", value)
+        values(${userId},${postId},${realValue});
+
+        update post 
+        set points = points + ${realValue}
+        where id = ${postId};
+
+        COMMIT;
+        `)
+        return true
+    }
 
     @FieldResolver(() => String)
     textSnippet(
@@ -53,15 +85,20 @@ export class PostResolver {
 
         const posts = await getConnection().query(
             `
-      select p.*
-      from post p
-      ${cursor ? `where p."createdAt" < $2` : ""}
-      order by p."createdAt" DESC
-      limit $1
-      `,
+          select p.*, 
+          json_build_object(
+              'id', u.id,
+              'email', u.email,
+              'username', u.username
+              ) creator 
+          from post p
+          inner join public.user u on u.id = p."creatorId"
+          ${cursor ? `where p."createdAt" < $2` : ""}
+          order by p."createdAt" DESC
+          limit $1
+          `,
             replacements
         );
-
         // const qb = getConnection()
         //   .getRepository(Post)
         //   .createQueryBuilder("p")

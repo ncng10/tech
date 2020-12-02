@@ -32,13 +32,12 @@ const Index = () => {
           data.posts.posts.map((post) =>
             <div key={post.id}>
               <Box key={post.id} p={5} shadow="md" borderWidth="1px">
-                <Heading>{post.title}</Heading>
-                <Text>{`${post.textSnippet} ...`}</Text>
+                <Heading>{post.title}</Heading> {post.creator.username}
+                <Text>{`${post.textSnippet}...`}</Text>
               </Box>
             </div>
           )
         )}
-      {console.log(data.posts.hasMore)}
       {
         data && data.posts.hasMore
           ? (<Flex>

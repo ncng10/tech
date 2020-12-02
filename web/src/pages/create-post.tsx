@@ -8,7 +8,7 @@ import { InputField } from '../components/InputField';
 import { Layout } from '../components/Layout';
 import { useCreatePostMutation } from '../generated/graphql';
 import { createUrqlClient } from '../utils/createUrqlClient';
-import { useIsAuth } from '../utils/usisAuth';
+import { useIsAuth } from '../utils/useisAuth'
 
 
 const CreatePost: React.FC<{}> = ({ }) => {
@@ -37,7 +37,7 @@ const CreatePost: React.FC<{}> = ({ }) => {
                             label="Title"
                         />
                         <Box mt={4}>
-                            <Textarea
+                            <InputField width={200} height={150}
                                 name="text"
                                 placeholder="text..."
                                 label="Body"

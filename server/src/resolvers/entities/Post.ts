@@ -1,6 +1,16 @@
-import { ObjectType, Field } from "type-graphql";
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { ObjectType, Field, Int } from "type-graphql";
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
+    BaseEntity,
+    ManyToOne,
+    OneToMany,
+} from "typeorm";
 import { User } from "./User";
+import { Updoot } from "./Updoot";
 
 @ObjectType()
 @Entity()
@@ -9,17 +19,9 @@ export class Post extends BaseEntity {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Field(() => String)
-    @CreateDateColumn()
-    createdAt = Date();
-
-    @Field(() => String)
-    @UpdateDateColumn()
-    updatedAt = Date();
-
     @Field()
     @Column()
-    creatorId: number;
+    title!: string;
 
     @Field()
     @Column()
@@ -29,10 +31,25 @@ export class Post extends BaseEntity {
     @Column({ type: "int", default: 0 })
     points!: number;
 
+    @Field(() => Int, { nullable: true })
+    voteStatus: number | null; // 1 or -1 or null
+
     @Field()
     @Column()
-    title!: string;
+    creatorId: number;
 
-    @ManyToOne(() => User, user => user.posts)
+    @Field()
+    @ManyToOne(() => User, (user) => user.posts)
     creator: User;
+
+    @OneToMany(() => Updoot, (updoot) => updoot.post)
+    updoots: Updoot[];
+
+    @Field(() => String)
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @Field(() => String)
+    @UpdateDateColumn()
+    updatedAt: Date;
 }
