@@ -12,6 +12,9 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
         <React.Fragment>
             <Button
                 onClick={() => {
+                    if (post.voteStatus === 1) {
+                        return;
+                    }
                     vote({
                         postId: post.id,
                         value: 1,
@@ -21,6 +24,9 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
             {post.points}
             <Button
                 onClick={() => {
+                    if (post.voteStatus === -1) {
+                        return;
+                    }
                     vote({
                         postId: post.id,
                         value: -1,

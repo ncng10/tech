@@ -15,6 +15,7 @@ interface loginProps { }
 
 const Login: React.FC<loginProps> = ({ }) => {
     const router = useRouter();
+    const home = "/"
     const [, login] = useLoginMutation();
     return (
         <Wrapper variant="small">
@@ -37,7 +38,7 @@ const Login: React.FC<loginProps> = ({ }) => {
                             router.push(router.query.next);
                         }
                     } else {
-                        router.push("/")
+                        router.push(home)
                     }
                 }}
             >

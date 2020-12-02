@@ -33,7 +33,10 @@ const Index = () => {
             <div key={post.id}>
               <Box key={post.id} p={5} shadow="md" borderWidth="1px">
                 <UpdootSection post={post} />
-                <Heading>{post.title}</Heading> {post.creator.username}
+                <NextLink href="/post/[id]" as={`/post/${post.id}`}>
+                  <Heading style={{ cursor: "pointer" }}>{post.title}</Heading>
+                </NextLink>
+                {post.creator.username}
                 <Text>{`${post.textSnippet}...`}</Text>
               </Box>
             </div>
