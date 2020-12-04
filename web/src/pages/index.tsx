@@ -1,14 +1,16 @@
 import { Box, Button, Icon, Link } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import React, { useState } from "react";
-import { usePostsQuery } from "../generated/graphql";
+import { useDeletePostMutation, useMeQuery, usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import NextLink from 'next/link'
 import { Heading, Text, Flex } from "@chakra-ui/react";
 import { UpdootSection } from "../components/UpdootSection"
 
 const Index = () => {
-  const [variables, setVariables] = useState({ limit: 20, cursor: null as null | string })
+  const [variables, setVariables] = useState({ limit: 20, cursor: null as null | string });
+  const [, deletePost] = useDeletePostMutation();
+  const [{ data: meData, }] = useMeQuery();
   const [{ data, fetching }] = usePostsQuery({
     variables,
   });
@@ -30,17 +32,26 @@ const Index = () => {
       {!data && fetching ? (
         <div>Loading...</div>) : (
           data.posts.posts.map((post) =>
-            <div key={post.id}>
-              <Box key={post.id} p={5} shadow="md" borderWidth="1px">
-                <UpdootSection post={post} />
-                <NextLink href="/post/[id]" as={`/post/${post.id}`}>
-                  <Heading style={{ cursor: "pointer" }}>{post.title}</Heading>
-                </NextLink>
-                {post.creator.username}
-                <Text>{`${post.textSnippet}...`}</Text>
-              </Box>
-            </div>
-          )
+            !post ? null : (
+              <div key={post.id}>
+                <Box key={post.id} p={5} shadow="md" borderWidth="1px">
+                  <UpdootSection post={post} />
+                  <NextLink href="/post/[id]" as={`/post/${post.id}`}>
+                    <Heading style={{ cursor: "pointer" }}>{post.title}</Heading>
+                  </NextLink>
+               Posted by: {post.creator.username}
+                  <Text>{`${post.textSnippet}...`}</Text>
+                  {post.creator.id === meData.me.id ?
+                    <Button
+                      onClick={() => {
+                        deletePost({ id: post.id })
+                      }}
+                    >Delete Post</Button>
+                    : null
+                  }
+                </Box>
+              </div>
+            ))
         )}
       {
         data && data.posts.hasMore

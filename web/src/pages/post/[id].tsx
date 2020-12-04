@@ -19,11 +19,19 @@ const Post: React.FC = ({ }) => {
             <Layout>Loading...</Layout>
         )
     }
+
+    if (!data?.post) {
+        return (
+            <div>
+                Could not find post
+            </div>
+        )
+    }
     return (
         <React.Fragment>
             <Layout>
-                <div>{data?.post?.title}</div>
-                {data?.post?.text}
+                <div>{data.post?.title}</div>
+                {data.post?.text}
             </Layout>
         </React.Fragment>
     );
