@@ -41,15 +41,24 @@ const Index = () => {
                   </NextLink>
                Posted by: {post.creator.username}
                   <Text>{`${post.textSnippet}...`}</Text>
-                  {post.creator.id === meData.me.id ?
+                </Box>
+                {post.creator.id === meData.me.id ?
+                  <div>
+                    <NextLink href="/post/edit/[id]"
+                      as={`/post/edit/${post.id}`}
+                    >
+                      <Button>
+                        Update Post
+                      </Button>
+                    </NextLink>
                     <Button
                       onClick={() => {
                         deletePost({ id: post.id })
                       }}
                     >Delete Post</Button>
-                    : null
-                  }
-                </Box>
+                  </div>
+                  : null
+                }
               </div>
             ))
         )}

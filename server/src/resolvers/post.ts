@@ -167,13 +167,22 @@ export class PostResolver {
     }
 
     @Mutation(() => Post, { nullable: true })
+    @UseMiddleware(isAuth)
     async updatePost(
-        @Arg("id") id: number,
+        @Arg("id", () => Int) id: number,
         @Arg("text") text: string,
         @Arg("title") title: string,
+        @Ctx() { req }: MyContext
     ): Promise<Post | null> {
-        const post = await Post.findOne(id); //or {where:{id}} used if id isnt the primary key
-        return Post.update({ id, creatorId }, { title, text });
+        const result = await getConnection()
+            .createQueryBuilder()
+            .update(Post)
+            .set({ title, text })
+            .where('id = :id and "creatorId" = :creatorId', { id, creatorId: req.session.userId })
+            .returning("*")
+            .execute();
+
+        return result.raw[0];
     }
 
 
