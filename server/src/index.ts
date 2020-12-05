@@ -17,6 +17,7 @@ require("dotenv").config({ path: 'src/utils/.env' });
 import path from "path";
 import { Updoot } from "./resolvers/entities/Updoot";
 import { createUserLoader } from "./utils/createUserLoader";
+import { createUpdootLoader } from "./utils/createUpdootLoader";
 
 const main = async () => {
     const connection = await createConnection({
@@ -69,7 +70,7 @@ const main = async () => {
             resolvers: [HelloResolver, PostResolver, UserResolver],
             validate: false,
         }),
-        context: ({ req, res }) => ({ req, res, redis, userLoader: createUserLoader(), })
+        context: ({ req, res }) => ({ req, res, redis, userLoader: createUserLoader(), updootLoader: createUpdootLoader(), })
     });
 
     apolloServer.applyMiddleware({ app, cors: { origin: false } });

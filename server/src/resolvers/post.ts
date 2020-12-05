@@ -89,6 +89,22 @@ export class PostResolver {
         return userLoader.load(post.creatorId)
     }
 
+    @FieldResolver(() => Int, { nullable: true })
+    async voteStatus(
+        @Root() post: Post,
+        @Ctx() { updootLoader, req }: MyContext
+    ) {
+        if (!req.session.userId) {
+            return null;
+        }
+
+        const updoot = await updootLoader.load({
+            postId: post.id,
+            userId: req.session.userId
+        });
+
+        return updoot ? updoot.value : null;
+    }
 
 
     @Query(() => PaginatedPosts)
@@ -103,24 +119,16 @@ export class PostResolver {
 
         const replacements: any[] = [reaLimitPlusOne]
 
-        if (req.session.userId) {
-            replacements.push(req.session.userId);
-        }
 
-        let cursorIndex = 3;
         if (cursor) {
             replacements.push(new Date(parseInt(cursor)));
-            cursorIndex = replacements.length;
         }
 
         const posts = await getConnection().query(
             `
           select p.*
-              ${req.session.userId
-                ? ',(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"'
-                : 'null as "voteStatus"'} 
           from post p
-          ${cursor ? `where p."createdAt" <$${cursorIndex}` : ""}
+          ${cursor ? `where p."createdAt" <$2` : ""}
           order by p."createdAt" DESC
           limit $1
           `,
