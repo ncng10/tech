@@ -11,14 +11,14 @@ const Index = () => {
   const [variables, setVariables] = useState({ limit: 20, cursor: null as null | string });
   const [, deletePost] = useDeletePostMutation();
   const [{ data: meData, }] = useMeQuery();
-  const [{ data, fetching }] = usePostsQuery({
+  const [{ data, error, fetching }] = usePostsQuery({
     variables,
   });
 
   if (!fetching && !data) {
     return (
       <div>
-        Posts failed to load
+        {error?.message}
       </div>
     )
   }
@@ -42,10 +42,10 @@ const Index = () => {
                Posted by: {post.creator.username}
                   <Text>{`${post.textSnippet}...`}</Text>
                 </Box>
-                {post.creator.id === meData.me.id ?
+                {post.creator.id === meData?.me?.id ?
                   <div>
-                    <NextLink href="/post/edit/[id]"
-                      as={`/post/edit/${post.id}`}
+                    <NextLink href="/post/update/[id]"
+                      as={`/post/update/${post.id}`}
                     >
                       <Button>
                         Update Post

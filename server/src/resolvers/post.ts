@@ -84,6 +84,11 @@ export class PostResolver {
         return root.text.slice(0, 50);
     }
 
+    @FieldResolver(() => User)
+    creator(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+        return userLoader.load(post.creatorId)
+    }
+
 
 
     @Query(() => PaginatedPosts)
@@ -110,17 +115,11 @@ export class PostResolver {
 
         const posts = await getConnection().query(
             `
-          select p.*, 
-          json_build_object(
-              'id', u.id,
-              'email', u.email,
-              'username', u.username
-              ) creator
+          select p.*
               ${req.session.userId
                 ? ',(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"'
                 : 'null as "voteStatus"'} 
           from post p
-          inner join public.user u on u.id = p."creatorId"
           ${cursor ? `where p."createdAt" <$${cursorIndex}` : ""}
           order by p."createdAt" DESC
           limit $1
@@ -151,7 +150,7 @@ export class PostResolver {
 
     @Query(() => Post, { nullable: true })
     post(@Arg('id', () => Int) id: number): Promise<Post | undefined> {
-        return Post.findOne(id, { relations: ["creator"] });
+        return Post.findOne(id);
     }
 
     @Mutation(() => Post)
