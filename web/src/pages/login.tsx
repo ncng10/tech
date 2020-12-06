@@ -3,12 +3,11 @@ import { Formik, Form } from "formik";
 import { Wrapper } from "../components/Wrapper";
 import { InputField } from "../components/InputField";
 import { Box, Button, Link } from "@chakra-ui/react";
-import { useLoginMutation } from "../generated/graphql";
+import { MeDocument, MeQuery, useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from 'next/router'
-import { withUrqlClient } from "next-urql";
-import { createUrqlClient } from "../utils/createUrqlClient";
 import NextLink from 'next/link'
+import { withApollo } from "../utils/withApollo";
 interface loginProps { }
 
 
@@ -16,13 +15,25 @@ interface loginProps { }
 const Login: React.FC<loginProps> = ({ }) => {
     const router = useRouter();
     const home = "/"
-    const [, login] = useLoginMutation();
+    const [login] = useLoginMutation();
     return (
         <Wrapper variant="small">
             <Formik
                 initialValues={{ userNameOrEmail: "", password: "" }}
                 onSubmit={async (values, { setErrors }) => {
-                    const response = await login(values);
+                    const response = await login({
+                        variables: values,
+                        update: (cache, { data }) => {
+                            cache.writeQuery<MeQuery>({
+                                query: MeDocument,
+                                data: {
+                                    __typename: "Query",
+                                    me: data?.login.user,
+                                },
+                            });
+                            cache.evict({ fieldName: "posts:{}" })
+                        },
+                    });
                     if (response.data?.login.errors) {
                         //fails
                         setErrors(toErrorMap(response.data.login.errors));
@@ -36,9 +47,9 @@ const Login: React.FC<loginProps> = ({ }) => {
                         //only if they clicked the link to do so
                         if (typeof router.query.next === "string") {
                             router.push(router.query.next);
+                        } else {
+                            router.push(home)
                         }
-                    } else {
-                        router.push(home)
                     }
                 }}
             >
@@ -71,8 +82,8 @@ const Login: React.FC<loginProps> = ({ }) => {
                     </Form>
                 )}
             </Formik>
-        </Wrapper>
+        </Wrapper >
     );
 };
 
-export default withUrqlClient(createUrqlClient)(Login);
+export default withApollo({ ssr: false })(Login);

@@ -1,21 +1,21 @@
 import { Box, Button, Link } from "@chakra-ui/react";
-import { withUrqlClient } from "next-urql";
-import React, { useState } from "react";
+import React from "react";
 import { useDeletePostMutation, useMeQuery, usePostsQuery } from "../generated/graphql";
-import { createUrqlClient } from "../utils/createUrqlClient";
 import NextLink from 'next/link'
 import { Heading, Text, Flex } from "@chakra-ui/react";
 import { UpdootSection } from "../components/UpdootSection"
+import { withApollo } from "../utils/withApollo";
+import { NavBar } from "../components/NavBar";
 
 const Index = () => {
-  const [variables, setVariables] = useState({ limit: 20, cursor: null as null | string });
-  const [, deletePost] = useDeletePostMutation();
-  const [{ data: meData, }] = useMeQuery();
-  const [{ data, error, fetching }] = usePostsQuery({
-    variables,
+  const [deletePost] = useDeletePostMutation();
+  const { data: meData, } = useMeQuery();
+  const { data, error, loading, fetchMore, variables } = usePostsQuery({
+    variables: { limit: 5, cursor: null as null | string },
+    notifyOnNetworkStatusChange: true,
   });
 
-  if (!fetching && !data) {
+  if (!loading && !data) {
     return (
       <div>
         {error?.message}
@@ -24,12 +24,13 @@ const Index = () => {
   }
   return (
     <React.Fragment>
+      <NavBar />
       <NextLink href="/create-post">
         <Link>
           Create a Post
       </Link>
       </NextLink>
-      {!data && fetching ? (
+      {!data && loading ? (
         <div>Loading...</div>) : (
           data.posts.posts.map((post) =>
             !post ? null : (
@@ -53,7 +54,11 @@ const Index = () => {
                     </NextLink>
                     <Button
                       onClick={() => {
-                        deletePost({ id: post.id })
+                        deletePost({
+                          variables: { id: post.id }, update: (cache) => {
+                            cache.evict({ id: "Post:" + post.id });
+                          }
+                        });
                       }}
                     >Delete Post</Button>
                   </div>
@@ -65,10 +70,14 @@ const Index = () => {
       {
         data && data.posts.hasMore
           ? (<Flex>
-            <Button onClick={() => setVariables({
-              limit: variables?.limit,
-              cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
-            })} isLoading={fetching} my={8}>Load More</Button>
+            <Button onClick={() => {
+              fetchMore({
+                variables: {
+                  limit: variables?.limit,
+                  cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
+                },
+              });
+            }} isLoading={loading} my={8}>Load More</Button>
           </Flex>) : null
       }
 
@@ -77,4 +86,4 @@ const Index = () => {
 }
 
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Index)
+export default withApollo({ ssr: true })(Index);

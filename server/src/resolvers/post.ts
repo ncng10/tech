@@ -75,6 +75,7 @@ export class PostResolver {
                 //transaction manager
             })
         }
+        return true;
     }
 
     @FieldResolver(() => String)
