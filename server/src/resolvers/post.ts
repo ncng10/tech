@@ -1,10 +1,10 @@
 import { MyContext } from "src/types";
 import { isAuth } from '../utils/middleware/isAuth'
 import { Arg, Ctx, Field, FieldResolver, InputType, Int, Mutation, ObjectType, Query, Resolver, Root, UseMiddleware } from "type-graphql";
-import { Post } from "./entities/Post";
+import { Post } from "../entities/Post";
 import { getConnection } from "typeorm";
-import { User } from "./entities/User";
-import { Updoot } from "./entities/Updoot";
+import { User } from "../entities/User";
+import { Updoot } from "../entities/Updoot";
 
 //crud functions
 
@@ -110,8 +110,7 @@ export class PostResolver {
     @Query(() => PaginatedPosts)
     async posts(
         @Arg("limit", () => Int) limit: number,
-        @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
-        @Ctx() { req }: MyContext
+        @Arg("cursor", () => String, { nullable: true }) cursor: string | null
     ): Promise<PaginatedPosts> {
         // 20 -> 21
         const realLimit = Math.min(50, limit);

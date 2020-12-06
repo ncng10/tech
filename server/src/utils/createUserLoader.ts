@@ -1,5 +1,5 @@
 import DataLoader from "dataloader"
-import { User } from '../resolvers/entities/User'
+import { User } from '../entities/User'
 //keys: [1,2,5,32]
 //[{id: 1, username:bob}, {id:2, username:joe}, etc...]
 

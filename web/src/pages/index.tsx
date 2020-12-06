@@ -1,4 +1,4 @@
-import { Box, Button, Icon, Link } from "@chakra-ui/react";
+import { Box, Button, Link } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import React, { useState } from "react";
 import { useDeletePostMutation, useMeQuery, usePostsQuery } from "../generated/graphql";

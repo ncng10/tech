@@ -1,9 +1,8 @@
 import { Box, Button, Flex, Link } from '@chakra-ui/react';
-import React from 'react'
-import NextLink from "next/link"
-import { useLogoutMutation, useMeQuery } from "../generated/graphql"
-import { isServer } from '../utils/isServer';
-import { useRouter, userRouter } from 'next/router'
+import NextLink from "next/link";
+import { useRouter } from 'next/router';
+import React from 'react';
+import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 interface NavBarProps {
 
 }
