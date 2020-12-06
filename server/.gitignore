@@ -3,3 +3,6 @@
 
 dist
 ormconfig.json
+
+
+.env.production
